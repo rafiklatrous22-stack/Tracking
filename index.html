@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>محاكي أرباح إعلانات فيسبوك</title>
+<style>
+body{
+    font-family:Arial;
+    direction:rtl;
+    background:#e0f2ff;
+    padding:20px
+}
+.box{
+    background:white;
+    padding:20px;
+    max-width:650px;
+    margin:auto;
+    border-radius:12px;
+    box-shadow:0 0 15px rgba(0,0,0,0.2);
+}
+h2{text-align:center;color:#0b3d91;}
+h3{margin-top:15px;color:#0b3d91;}
+.row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+.col{
+    flex:1 1 45%;
+    min-width:120px;
+}
+label{
+    font-weight:bold;
+    display:block;
+    margin-bottom:3px;
+    color:#333;
+    font-size:14px;
+}
+input, select{
+    width:100%;
+    padding:6px;
+    font-size:14px;
+    margin-bottom:8px;
+    border-radius:5px;
+    border:1px solid #aaa;
+    box-sizing:border-box;
+    direction:ltr;
+    unicode-bidi: embed;
+}
+button{
+    width:100%;
+    padding:10px;
+    background:#0b3d91;
+    color:white;
+    border:none;
+    font-size:14px;
+    margin-top:8px;
+    border-radius:6px;
+    cursor:pointer;
+}
+button:hover{
+    background:#1565c0;
+}
+.del-btn{
+    background:#c62828;
+    margin-top:0;
+}
+.del-btn:hover{
+    background:#e53935;
+}
+.result{
+    margin-top:15px;
+    font-size:14px;
+    color:#111;
+    direction:ltr;
+    unicode-bidi: embed;
+    text-align:center;
+}
+.result-item{
+    background:#f2f2f2;
+    margin:4px 0;
+    padding:6px 8px;
+    border-radius:5px;
+    text-align:center;
+    display:flex;
+    justify-content:space-between;
+}
+.result-item span.label{
+    font-weight:bold;
+    color:#0b3d91;
+}
+.negative{color:red;}
+.low{color:orange;}
+.good{color:green;}
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>محاكي أرباح إعلانات فيسبوك</h2>
+
+<h3>إدارة المنتجات</h3>
+<select id="productSelect" onchange="fillProduct()">
+    <option value="">-- اختر منتج --</option>
+</select>
+
+<div class="row">
+    <div class="col">
+        <label>اسم المنتج جديد</label>
+        <input id="newProductName" placeholder="مثال: حقيبة الأم">
+    </div>
+    <div class="col">
+        <button onclick="addProduct()">أضف / حفظ المنتج</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+        <button class="del-btn" onclick="deleteProduct()">حذف المنتج المحدد</button>
+    </div>
+</div>
+
+<h3>بيانات الإعلان</h3>
+<div class="row">
+    <div class="col">
+        <label>تكلفة الإعلان قبل التأكيد ($)</label>
+        <input id="adsBefore" type="text" oninput="forceLatin(this)">
+    </div>
+    <div class="col">
+        <label>نسبة التأكيد والتوصيل</label>
+        <input id="rate" type="text" oninput="forceLatin(this)">
+    </div>
+    <div class="col">
+        <label>سعر الدولار بالدينار</label>
+        <input id="dollar" type="text" oninput="forceLatin(this)">
+    </div>
+</div>
+
+<h3>بيانات المنتج</h3>
+<div class="row">
+    <div class="col">
+        <label>سعر البيع</label>
+        <input id="sell" type="text" oninput="forceLatin(this)">
+    </div>
+    <div class="col">
+        <label>تكلفة المنتج</label>
+        <input id="productCost" type="text" oninput="forceLatin(this)">
+    </div>
+    <div class="col">
+        <label>التوصيل</label>
+        <input id="shipping" type="text" oninput="forceLatin(this)">
+    </div>
+    <div class="col">
+        <label>التغليف</label>
+        <input id="pack" type="text" oninput="forceLatin(this)">
+    </div>
+    <div class="col">
+        <label>تكلفة التأكيد والمتابعة</label>
+        <input id="confirmTrack" type="text" oninput="forceLatin(this)">
+    </div>
+    <div class="col">
+        <label>عدد الطلبات</label>
+        <input id="orders" type="text" oninput="forceLatin(this)">
+    </div>
+</div>
+
+<button onclick="calc()">احسب الأرباح</button>
+
+<div class="result" id="result"></div>
+</div>
+
+<script>
+function forceLatin(input){
+    input.value = input.value.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+}
+
+let productsData = JSON.parse(localStorage.getItem("productsData") || "{}");
+
+function updateProductSelect(){
+    let select = document.getElementById("productSelect");
+    select.innerHTML = '<option value="">-- اختر منتج --</option>';
+    for(let key in productsData){
+        let opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = key;
+        select.appendChild(opt);
+    }
+}
+
+function clearAllFields(){
+    document.getElementById("adsBefore").value = "";
+    document.getElementById("rate").value = "";
+    document.getElementById("dollar").value = "";
+    document.getElementById("sell").value = "";
+    document.getElementById("productCost").value = "";
+    document.getElementById("shipping").value = "";
+    document.getElementById("pack").value = "";
+    document.getElementById("confirmTrack").value = "";
+    document.getElementById("orders").value = "";
+    document.getElementById("result").innerHTML = ""; // تفريغ النتائج
+}
+
+function fillProduct(){
+    clearAllFields();
+    let sel = document.getElementById("productSelect").value;
+    if(sel && productsData[sel]){
+        let obj = productsData[sel];
+        document.getElementById("sell").value = obj.sell || "";
+        document.getElementById("productCost").value = obj.product || "";
+        document.getElementById("shipping").value = obj.shipping || "";
+        document.getElementById("pack").value = obj.pack || "";
+        document.getElementById("confirmTrack").value = obj.confirmTrack || "";
+        document.getElementById("newProductName").value = sel;
+    }
+}
+
+function addProduct(){
+    let name = document.getElementById("newProductName").value.trim();
+    if(!name){ alert("أدخل اسم المنتج!"); return; }
+    let obj = {
+        sell: Number(document.getElementById("sell").value),
+        product: Number(document.getElementById("productCost").value),
+        shipping: Number(document.getElementById("shipping").value),
+        pack: Number(document.getElementById("pack").value),
+        confirmTrack: Number(document.getElementById("confirmTrack").value)
+    };
+    productsData[name] = obj;
+    localStorage.setItem("productsData", JSON.stringify(productsData));
+    updateProductSelect();
+    alert("تم حفظ المنتج: " + name);
+}
+
+function deleteProduct(){
+    let sel = document.getElementById("productSelect").value;
+    if(sel && productsData[sel]){
+        if(confirm("هل تريد حقًا حذف المنتج: " + sel + " ؟")){
+            delete productsData[sel];
+            localStorage.setItem("productsData", JSON.stringify(productsData));
+            updateProductSelect();
+            clearAllFields();
+            alert("تم حذف المنتج.");
+        }
+    } else {
+        alert("اختر منتجًا أولاً!");
+    }
+}
+
+function calc(){
+    let adsBefore = Number(document.getElementById("adsBefore").value)
+    let rate = Number(document.getElementById("rate").value)
+    let dollar = Number(document.getElementById("dollar").value)
+    let sell = Number(document.getElementById("sell").value)
+    let productCost = Number(document.getElementById("productCost").value)
+    let shipping = Number(document.getElementById("shipping").value)
+    let pack = Number(document.getElementById("pack").value)
+    let confirmTrack = Number(document.getElementById("confirmTrack").value)
+    let orders = Number(document.getElementById("orders").value)
+
+    let adsPerSale = (adsBefore / rate) * dollar
+    let profitPerOrder = sell - productCost - shipping - pack - adsPerSale - confirmTrack
+    let totalProfit = profitPerOrder * orders
+
+    function classify(val){
+        if(val<0) return 'negative';
+        if(val<50) return 'low';
+        return 'good';
+    }
+
+    document.getElementById("result").innerHTML = `
+        <div class="result-item">
+            <span class="label">تكلفة الإعلان لكل مبيعة (دج):</span>
+            <span class="value">${adsPerSale.toFixed(2)}</span>
+        </div>
+        <div class="result-item">
+            <span class="label">ربح القطعة بعد التكاليف (دج):</span>
+            <span class="value ${classify(profitPerOrder)}">${profitPerOrder.toFixed(2)}</span>
+        </div>
+        <div class="result-item">
+            <span class="label">عدد الطلبات:</span>
+            <span class="value">${orders}</span>
+        </div>
+        <div class="result-item">
+            <span class="label">الربح الكلي (دج):</span>
+            <span class="value ${classify(totalProfit)}">${totalProfit.toFixed(2)}</span>
+        </div>
+    `;
+}
+
+updateProductSelect();
+</script>
+
+</body>
+</html>
